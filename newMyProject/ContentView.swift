@@ -1,46 +1,98 @@
-//
-//  ContentView.swift
-//  newMyProject
-//
-//  Created by Kerim Gaydan on 2.06.2023.
-//
-
 import SwiftUI
 
+struct User: Identifiable {
+    let id = UUID()
+    var username: String
+    var email: String
+    var password: String
+}
+
+class UserData: ObservableObject {
+    @Published var users = [User]()
+    
+    func addUser(username: String, email: String, password: String) {
+        let newUser = User(username: username, email: email, password: password)
+        users.append(newUser)
+        print("User added: \(newUser.username)")
+    }
+}
+
 struct ContentView: View {
-    @State var count = 0
+    @StateObject private var userData = UserData()
+    @State private var username = ""
+    @State private var email = ""
+    @State private var password = ""
+    
     var body: some View {
-        VStack {
-                    Text("Count: \(count)")
-                        .font(.largeTitle)
+            NavigationView {
+                VStack {
+                    TextField("Username", text: $username)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding()
+                        .autocapitalization(.none)
+                    
+                    TextField("Email", text: $email)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding()
+                        .autocapitalization(.none)
+                    
+                    SecureField("Password", text: $password)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding()
+                        .autocapitalization(.none)
                     
                     Button(action: {
-                        count += 1
+                        userData.addUser(username: username, email: email, password: password)
+                        username = ""
+                        email = ""
+                        password = ""
                     }) {
-                        Text("Increment")
-                            .font(.title)
+                        Text("Register")
+                            .font(.headline)
+                            .foregroundColor(.white)
                             .padding()
+                            .frame(maxWidth: .infinity)
                             .background(Color.blue)
-                            .foregroundColor(.white)
                             .cornerRadius(10)
                     }
+                    .padding()
                     
-                    Button(action: {
-                        count = 0
-                    }) {
-                        Text("Reset")
-                            .font(.title)
-                            .padding()
-                            .background(Color.red)
+                    NavigationLink(destination: UserListView(userData: userData)) {
+                        Text("User List")
+                            .font(.headline)
                             .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue)
                             .cornerRadius(10)
                     }
+                    .padding()
                 }
+                .padding()
             }
         }
+    }
+
+struct UserListView: View {
+    @ObservedObject var userData: UserData
+    
+    var body: some View {
+        List(userData.users) { user in
+            VStack(alignment: .leading) {
+                Text(user.username)
+                    .font(.headline)
+                Text(user.email)
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+            }
+        }
+        .navigationTitle("User List")
+    }
+}
+
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
     }
 }
+
